@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>📡 실시간 로그 대시보드</title>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #1e1e2f;
+      color: #eee;
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #66d9ef;
+      margin-bottom: 20px;
+    }
+
+    #log-container {
+      background-color: #2a2a3d;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+      height: 500px;
+      overflow-y: auto;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      background-color: #333;
+      padding: 10px 15px;
+      margin-bottom: 8px;
+      border-left: 5px solid #66d9ef;
+      font-size: 14px;
+      line-height: 1.4;
+      word-break: break-word;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    li:hover {
+      background-color: #444;
+    }
+  </style>
+</head>
+<body>
+
+<h1>📡 실시간 로그 대시보드 (<span th:text="${userCode}"></span>)</h1>
+<div id="log-container">
+  <ul id="log-list"></ul>
+</div>
+
+<!-- userCode를 타임리프로 JS에 전달 -->
+<script th:inline="javascript">
+  const userCode = /*[[${userCode}]]*/ "anonymous";
+</script>
+
+<script>
+  const logList = document.getElementById('log-list');
+  const logContainer = document.getElementById('log-container');
+
+  // 초기 로그 불러오기
+  fetch(`/api/logs/${userCode}`)
+  .then(res => res.json())
+  .then(data => {
+    data.forEach(log => addLog(log));
+  });
+
+  // WebSocket 연결
+  const socket = new SockJS('/ws-logs');
+  const stompClient = Stomp.over(socket);
+  stompClient.connect({}, () => {
+    stompClient.subscribe(`/topic/logs/${userCode}`, (msg) => {
+      addLog(msg.body);
+    });
+  });
+
+  function addLog(log) {
+    const li = document.createElement('li');
+    li.textContent = log;
+    logList.appendChild(li);
+    logContainer.scrollTop = logContainer.scrollHeight;
+  }
+</script>
+
+</body>
+</html>
