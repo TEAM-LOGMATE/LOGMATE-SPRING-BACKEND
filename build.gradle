@@ -30,6 +30,13 @@ dependencies {
 	// Web
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
+	// Web Socket
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+
+	// Template Engine
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
