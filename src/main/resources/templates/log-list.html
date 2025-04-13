@@ -82,7 +82,8 @@
   const stompClient = Stomp.over(socket);
   stompClient.connect({}, () => {
     stompClient.subscribe(`/topic/logs/${userCode}`, (msg) => {
-      addLog(msg.body);
+      const logs = JSON.parse(msg.body);
+      logs.forEach(log => addLog(formatLog(log)));
     });
   });
 
@@ -90,8 +91,11 @@
     const li = document.createElement('li');
     li.textContent = log;
     logList.appendChild(li);
-    logContainer.scrollTop = logContainer.scrollHeight;
   }
+  function formatLog(log) {
+    return `[${log.timestamp}] [${log.level}] (${log.thread}) ${log.logger} - ${log.message}`;
+  }
+
 </script>
 
 </body>

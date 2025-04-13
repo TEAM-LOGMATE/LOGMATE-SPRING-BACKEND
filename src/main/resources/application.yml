@@ -3,11 +3,21 @@ server:
 spring:
     datasource:
         driver-class-name: com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://localhost:3306/logdb?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul
+        url: jdbc:mysql://mysql:3306/logdb?rewriteBatchedStatements=true&useSSL=false&serverTimezone=Asia/Seoul
         username: root
-        password: root
+        password: logmate123
     jpa:
         show-sql: true
         hibernate:
-            ddl-auto: update
+            ddl-auto: create
             format_sql: true
+        properties:
+            hibernate:
+                id:
+                    new_generator_mappings: true
+                jdbc:
+                    batch_size: 20
+                order_inserts: true
+                order_updates: true
+                generate_statistics: true
+        open-in-view: false  # 권장
