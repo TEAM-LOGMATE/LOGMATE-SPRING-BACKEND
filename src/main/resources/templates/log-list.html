@@ -25,7 +25,7 @@
       border-radius: 10px;
       padding: 20px;
       max-width: 900px;
-      margin: 0 auto;
+      margin: 20px auto;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
       height: 500px;
       overflow-y: auto;
@@ -52,11 +52,63 @@
     li:hover {
       background-color: #444;
     }
+
+    .form-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background-color: #2a2a3d;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .form-container label {
+      display: block;
+      margin-top: 10px;
+      color: #ccc;
+    }
+
+    .form-container input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 4px;
+      border: none;
+      font-size: 14px;
+    }
+
+    .form-container button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #66d9ef;
+      color: #111;
+      font-weight: bold;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .form-container button:hover {
+      background-color: #5ac0db;
+    }
   </style>
 </head>
 <body>
 
 <h1>📡 실시간 로그 대시보드 (<span th:text="${userCode}"></span>)</h1>
+
+<div class="form-container">
+  <label for="host">📍 Agent Host (http://localhost:8081)</label>
+  <input type="text" id="host" placeholder="예: http://localhost:8081" />
+
+  <label for="logPath">📄 Log File Path</label>
+  <input type="text" id="logPath" placeholder="예: /host/logs/app.log" />
+
+  <label for="pushUrl">🌐 Push URL</label>
+  <input type="text" id="pushUrl" placeholder="예: http://your-api.com/logs" />
+
+  <button onclick="sendConfig()">설정 전송</button>
+</div>
+
 <div id="log-container">
   <ul id="log-list"></ul>
 </div>
@@ -82,8 +134,7 @@
   const stompClient = Stomp.over(socket);
   stompClient.connect({}, () => {
     stompClient.subscribe(`/topic/logs/${userCode}`, (msg) => {
-      const logs = JSON.parse(msg.body);
-      logs.forEach(log => addLog(formatLog(log)));
+      addLog(msg.body);
     });
   });
 
@@ -91,11 +142,40 @@
     const li = document.createElement('li');
     li.textContent = log;
     logList.appendChild(li);
-  }
-  function formatLog(log) {
-    return `[${log.timestamp}] [${log.level}] (${log.thread}) ${log.logger} - ${log.message}`;
+    logContainer.scrollTop = logContainer.scrollHeight;
   }
 
+  function sendConfig() {
+    const host = document.getElementById('host').value;
+    const logPath = document.getElementById('logPath').value;
+    const pushUrl = document.getElementById('pushUrl').value;
+
+    if (!host || !logPath || !pushUrl) {
+      alert("모든 필드를 입력해주세요!");
+      return;
+    }
+
+    const config = {
+      logFilePath: logPath,
+      logPushURL: pushUrl
+    };
+
+    fetch(`${host}/config`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(config)
+    })
+    .then(res => {
+      if (res.ok) {
+        alert("✅ 설정 전송 완료!");
+      } else {
+        alert("⚠️ 설정 전송 실패!");
+      }
+    })
+    .catch(() => alert("🚨 에이전트와 연결되지 않았습니다."));
+  }
 </script>
 
 </body>
